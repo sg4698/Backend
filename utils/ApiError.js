@@ -37,4 +37,5 @@ class ApiError extends Error {
 }
 
 // Export the `ApiError` class so it can be used in other files
-export { ApiError };
+
+module.exports = ApiError

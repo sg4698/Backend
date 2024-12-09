@@ -17,4 +17,5 @@ class ApiResponse {
 }
 
 // Export the `ApiResponse` class so it can be used in other files
-export { ApiResponse };
+
+module.exports = ApiResponse

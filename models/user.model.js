@@ -1,4 +1,4 @@
-import e from "express";
+const express =  require("express");
 
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
@@ -58,7 +58,7 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified()) return next(); // If the document is modified, skip further middleware and proceed with the save.
 
   // Hash the user's password before saving it to the database
-  this.password = bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10);
   // Call next() to continue with the save operation after the password is hashed
   next();
 });
@@ -117,4 +117,6 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
-export const User = mongoose.model("User", userSchema);
+ const User = mongoose.model("User", userSchema);
+
+ module.exports = User
