@@ -64,7 +64,7 @@ userSchema.pre("save", async function (next) {
 });
 
 // Define a method `isPassword` on the schema that can be used by its instances
-userSchema.methods.isPassword = async function (password) {
+userSchema.methods.isPasswordCorrect = async function (password) {
   // Use the bcrypt library to compare the plain-text password provided (`password`)
   // with the hashed password stored in the database (`this.password`).
   // The `compare` method returns a boolean: `true` if they match, otherwise `false`.
