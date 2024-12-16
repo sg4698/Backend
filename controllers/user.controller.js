@@ -4,6 +4,23 @@ const ApiError = require("../utils/ApiError");
 const User = require("../models/user.model");
 const uploadOnCloudinary = require("../utils/cloudinary");
 const ApiResponse = require("../utils/ApiResponse");
+const generateAccessAndRefereshTokens = async(userId) =>{
+  try {
+      const user = await User.findById(userId)
+      const accessToken = user.generateAccessToken()
+      const refreshToken = user.generateRefreshToken()
+
+      user.refreshToken = refreshToken
+      await user.save({ validateBeforeSave: false })
+
+      return {accessToken, refreshToken}
+
+
+  } catch (error) {
+      throw new ApiError(500, "Something went wrong while generating referesh and access token")
+  }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
   // validation - not empty
@@ -78,98 +95,92 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
 
-const generateAccessAndRefreshToken = async (userId) => {
-  // Declare an asynchronous function to generate access and refresh tokens for a user.
-  try {
-    const user = await User.findById(userId);
-    // Retrieve the user document from the database using the provided userId.
-    // `findById` is a Mongoose method that fetches a single user by their unique `_id`.
 
-    const accessToken = user.generateAccessToken();
-    // Call the `generateAccessToken` method of the user instance to create an access token.
-    // Assumes `generateAccessToken` is a custom method defined on the User schema.
+const loginUser = asyncHandler(async (req, res) =>{
+  // req body -> data
+  // username or email
+  //find the user
+  //password check
+  //access and referesh token
+  //send cookie
 
-    const refreshToken = user.generateAccessToken();
-    // Call the `generateAccessToken` method again to create a refresh token.
-    // This might be an error since `generateAccessToken` is likely intended for generating an access token.
-    // A separate method for generating a refresh token might be more appropriate.
+  const {email, username, password} = req.body
+  console.log(email);
 
-    user.refreshToken = refreshToken;
-    // Assign the generated refresh token to the user's `refreshToken` field.
-
-    await user.save({ validateBeforeSave: false });
-    // Save the updated user document to the database.
-    // The `{ validateBeforeSave: false }` option skips schema validations before saving.
-
-    return { accessToken, refreshToken };
-    // Return the generated access token and refresh token as an object.
-  } catch (error) {
-    throw new ApiError(
-      404,
-      "Something went wrong while generating access and refresh token"
-    );
-    // If an error occurs, throw a custom API error with a status code of 404 and an error message.
-    // This ensures the calling function can handle the error appropriately.
+  if (!(username || email)) {
+      throw new ApiError(400, "username or email is required")
   }
-};
-
-const loginUser = asyncHandler(async (req, res) => {
-  //  req body => to fetch data after login
-  // lgin on the bases o user or email
-  // Find the user
-  // Check the Password
-  // access and refresh token
-  // send  secure cookie
-
-  const { username, email, password } = req.body;
-
-  if (!username || !email) {
-    throw new ApiError(400, "User or email is required");
-  }
+  
+  // Here is an alternative of above code based on logic discussed in video:
+  // if (!(username || email)) {
+  //     throw new ApiError(400, "username or email is required")
+      
+  // }
 
   const user = await User.findOne({
-    $or: [{ username }, { email }],
-  });
+      $or: [{username}, {email}]
+  })
 
   if (!user) {
-    throw new ApiError(404, "User does not exist");
+      throw new ApiError(404, "User does not exist")
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
-  if (!isPasswordValid) {
-    throw new ApiError(401, "Password inCorrect");
+ const isPasswordValid = await user.isPasswordCorrect(password)
+
+ if (!isPasswordValid) {
+  throw new ApiError(401, "Invalid user credentials")
   }
-  const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
-    user._id
-  );
 
-  await User.findById(user._id).select(" -password -refreshToken");
+ const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
 
-  //    To send cookies we have to put option
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
   const options = {
-    httpOnly: true,
-    secure: true, //This will only edit from server side
-  };
+      httpOnly: true,
+      secure: true
+  }
 
   return res
-    .status(400)
-    .cookie("accessToken", accessToken)
-    .cookie("refresshToken", refreshToken)
-    .json(
+  .status(200)
+  .cookie("accessToken", accessToken, options)
+  .cookie("refreshToken", refreshToken, options)
+  .json(
       new ApiResponse(
-        200,
-        {
-          user: loggedInUser,
-          accessToken,
-          refreshToken,
-        },
-        "User logged in Successfully"
+          200, 
+          {
+              user: loggedInUser, accessToken, refreshToken
+          },
+          "User logged In Successfully"
       )
-    );
-});
+  )
 
-const logoutUser = asyncHandler(async(req,res)=>{
-    
 })
 
-module.exports = { registerUser, loginUser };
+const logoutUser = asyncHandler(async(req, res) => {
+  if (!req.user._id) {
+    throw new ApiError(400, "User ID is missing from the request");
+  }
+  await User.findByIdAndUpdate(
+      req.user._id,
+      {
+          $unset: {
+              refreshToken: 1 // this removes the field from document
+          }
+      },
+      {
+          new: true
+      }
+  )
+
+  const options = {
+      httpOnly: true,
+      secure: true
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new ApiResponse(200, {}, "User logged Out"))
+})
+module.exports = registerUser, loginUser,logoutUser;
