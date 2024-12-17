@@ -17,6 +17,20 @@ const multer = require("multer");
 //   },
 // });
 
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "./public/temp")
+//   },
+//   filename: function (req, file, cb) {
+    
+//     cb(null, file.originalname)
+//   }
+// })
+
+//  const upload = multer({ 
+//   storage, 
+// })
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./public/temp")
@@ -27,11 +41,8 @@ const storage = multer.diskStorage({
   }
 })
 
+const upload = multer({ 
+  storage, 
+})
 
-// Export the configured Multer instance
- const uploads = multer({
-  storage, // Use the custom `storage` configuration defined above
-});
-
-
-module.exports = uploads
+module.exports = upload
