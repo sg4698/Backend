@@ -1,7 +1,7 @@
 // import { userRegister } from '../controllers/user.controller';
-const registerUser = require("../controllers/user.controller.js");
-const logoutUser = require("../controllers/user.controller.js")
-const loginUser = require("../controllers/user.controller.js")
+const {registerUser,logoutUser,loginUser} = require("../controllers/user.controller.js");
+// const logoutUser = require("../controllers/user.controller.js")
+// const loginUser = require("../controllers/user.controller.js")
 const Router = require('express');
 const upload = require("../middlewares/multer.middleware")
 const verifyJWT = require("../middlewares/auth.middleware")

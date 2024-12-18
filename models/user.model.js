@@ -1,9 +1,8 @@
-const express =  require("express");
+const  {mongoose,Schema} = require("mongoose");
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-
-const userSchema =new mongoose.Schema(
+const userSchema = new Schema(
     {
         username: {
             type: String,
@@ -28,14 +27,14 @@ const userSchema =new mongoose.Schema(
         },
         avatar: {
             type: String, // cloudinary url
-            // required: true,
+            required: true,
         },
         coverImage: {
             type: String, // cloudinary url
         },
         watchHistory: [
             {
-                type: mongoose.Schema.Types.ObjectId,
+                type: Schema.Types.ObjectId,
                 ref: "Video"
             }
         ],
@@ -90,6 +89,6 @@ userSchema.methods.generateRefreshToken = function(){
         }
     )
 }
-const User = mongoose.model("User", userSchema)
+const User = mongoose.model("User", userSchema) 
 
  module.exports = User
