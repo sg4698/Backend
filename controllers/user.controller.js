@@ -179,6 +179,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "User logged Out"));
 });
 
+// refreshAccessToken Endpoint
 // Compare frontend token to backend token
 const refreshAccessToken = asyncHandler(async () => {
   // access from cookies
