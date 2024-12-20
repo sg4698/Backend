@@ -1,5 +1,5 @@
 // import { userRegister } from '../controllers/user.controller';
-const {registerUser,logoutUser,loginUser} = require("../controllers/user.controller.js");
+const {registerUser,logoutUser,loginUser,refreshAccessToken} = require("../controllers/user.controller.js");
 // const logoutUser = require("../controllers/user.controller.js")
 // const loginUser = require("../controllers/user.controller.js")
 const Router = require('express');
@@ -25,5 +25,6 @@ router.route("/login").post(loginUser)
 
 //secured routes
 router.route("/logout").post(verifyJWT,  logoutUser)
+router.route("/refreshToken").post(refreshAccessToken)
 
 module.exports = router;
