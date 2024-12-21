@@ -228,6 +228,19 @@ const refreshAccessToken = asyncHandler(async () => {
   }
 });
 
+// Change Password
+const changeCurrentPassword = asyncHandler(async () => {
+    const {oldPassword,newPassword} = req.body;
+
+  const user =  await User.findById(req.user?.id)
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+  if (!isPasswordCorrect) {
+      throw new ApiError(404,"Invalid Password");
+      
+  }
+})
+
 module.exports = {
   registerUser,
   loginUser,
