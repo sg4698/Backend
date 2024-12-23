@@ -261,7 +261,7 @@ const  updateAccountDetails = asyncHandler(async (req,res) => {
     throw new ApiError(400,"All fields are requires")
    }
 
-   User.findByIdAndUpdate(
+ const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set:{
@@ -297,8 +297,8 @@ const updateUserAvatar = asyncHandler( async (req,res) => {
     },
     {new:true}
    ).select("-password")
+   return res.status(200).json( new ApiResponse(200,user,"Avatar image sucess update"))
 })
-return res.status(200).json( new ApiResponse(200,user,"Avatar image sucess update"))
 
 const updateUserCoverImage = asyncHandler( async (req,res) => {
   const coverLocalPath =  req.file?.path
